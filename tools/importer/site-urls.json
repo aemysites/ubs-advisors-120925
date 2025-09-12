@@ -1,0 +1,32 @@
+{
+  "originUrl": "https://advisors.ubs.com",
+  "aborted": false,
+  "lastCrawled": "https://advisors.ubs.com/thegulfcoastgroup/",
+  "urls": [
+    {
+      "url": "https://advisors.ubs.com/thegulfcoastgroup/",
+      "source": "CRAWL",
+      "targetPath": "/thegulfcoastgroup",
+      "id": "63173a653ed63654a0537cc8a7c4c4813b9545e6"
+    }
+  ],
+  "crawlOptions": {
+    "timeout": 64800000,
+    "inclusionPatterns": [
+      "/thegulfcoastgroup/",
+      "/thegulfcoastgroup/**"
+    ],
+    "exclusionPatterns": [],
+    "limit": 100,
+    "sameDomain": true,
+    "keepHash": false,
+    "strategy": "crawl",
+    "logger": {},
+    "strategiesAttempted": [
+      "CRAWL"
+    ]
+  },
+  "extractionErrors": [],
+  "errorCountMessage": "none",
+  "error": null
+}
