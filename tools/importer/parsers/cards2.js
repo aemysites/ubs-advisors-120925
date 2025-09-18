@@ -1,67 +1,65 @@
 /* global WebImporter */
 export default function parse(element, { document }) {
-  // Find the cards section: three cards in a row, each with image/icon and text
-  // This is the section with class 'container col_img col_btn'
-  const cardsSection = element.querySelector('.container.col_img.col_btn');
-  if (!cardsSection) return;
+  // Find the cards block: three flex-col-33 boxes inside .col_img.col_btn
+  const cardsContainer = element.querySelector('.col_img.col_btn');
+  if (!cardsContainer) return;
 
-  // Each card is in a .flex-col-33
-  const cardEls = Array.from(cardsSection.querySelectorAll('.flex-col-33'));
-  if (!cardEls.length) return;
+  // Get each card column
+  const cardCols = cardsContainer.querySelectorAll('.flex-col-33');
 
-  // Build the table rows
-  const rows = [];
+  // Table header
   const headerRow = ['Cards (cards2)'];
-  rows.push(headerRow);
+  const rows = [headerRow];
 
-  cardEls.forEach(cardEl => {
-    // Image or video
-    let media = '';
-    let imgContainer = cardEl.querySelector('.img-container.firmfocusimage');
-    if (imgContainer) {
-      // Standard image
-      const img = imgContainer.querySelector('img');
-      if (img) media = img;
-    } else {
-      // Video (Brightcove)
-      const videoContainer = cardEl.querySelector('.grid-brightcove-container');
-      if (videoContainer) {
-        // Try to get video id
-        const videoId = videoContainer.getAttribute('data-video-id');
-        // Use a link to the video if possible
-        let videoLink = null;
-        if (videoId) {
-          // Brightcove public player link
-          videoLink = document.createElement('a');
-          videoLink.href = `https://players.brightcove.net/${videoContainer.getAttribute('data-account')}/${videoContainer.getAttribute('data-player')}_${videoContainer.getAttribute('data-embed')}/index.html?videoId=${videoId}`;
-          videoLink.textContent = 'Watch video';
-          videoLink.target = '_blank';
-        }
-        if (videoLink) media = videoLink;
-      }
+  // For each card column, extract image/icon and text content
+  cardCols.forEach((col) => {
+    // Image/Icon (mandatory)
+    let img = col.querySelector('.firmfocusimage img');
+    if (!img) return; // Only include cards with an image, as required
+
+    // Title
+    let title = col.querySelector('.ada-anchor-title');
+    // Description (collapsed .firmfocus)
+    let desc = col.querySelector('.firmfocus.wysiwyg-box');
+    // If no description, try to grab any paragraph inside the card
+    if (!desc) {
+      desc = col.querySelector('p');
+    }
+    // If still no description, try to grab any text content
+    if (!desc) {
+      desc = document.createElement('div');
+      desc.textContent = col.textContent.trim();
+    }
+    // CTA (Show more button)
+    let ctaBtn = col.querySelector('.btn-wrap .btn.collapser');
+    let cta = null;
+    if (ctaBtn) {
+      // Convert button to link
+      cta = document.createElement('a');
+      cta.textContent = ctaBtn.textContent.replace(/Show more/i, 'Show more');
+      cta.href = '#';
+      cta.className = 'cta-show-more';
     }
 
-    // Text content
-    // Title: h2. Description: .collapse.firmfocus.wysiwyg-box (hidden by default)
-    const textParts = [];
-    const title = cardEl.querySelector('h2');
-    if (title) textParts.push(title);
-    const desc = cardEl.querySelector('.collapse.firmfocus.wysiwyg-box');
-    if (desc) textParts.push(desc);
-    // Call-to-action: button in .btn-wrap.btn-box
-    const btnWrap = cardEl.querySelector('.btn-wrap.btn-box');
-    if (btnWrap) {
-      const btn = btnWrap.querySelector('button, a');
-      if (btn) textParts.push(btn);
+    // Compose second cell: title, description, CTA
+    const secondCellContent = [];
+    if (title) secondCellContent.push(title);
+    if (desc) secondCellContent.push(desc);
+    if (cta) secondCellContent.push(cta);
+
+    // Ensure at least some text content is present
+    if (secondCellContent.length === 0) {
+      const fallback = document.createElement('div');
+      fallback.textContent = col.textContent.trim();
+      secondCellContent.push(fallback);
     }
 
-    rows.push([
-      media,
-      textParts
-    ]);
+    rows.push([img, secondCellContent]);
   });
 
-  // Replace the original section with the block table
-  const block = WebImporter.DOMUtils.createTable(rows, document);
-  cardsSection.replaceWith(block);
+  // Only output block if at least one card row exists
+  if (rows.length > 1) {
+    const block = WebImporter.DOMUtils.createTable(rows, document);
+    element.replaceWith(block);
+  }
 }
