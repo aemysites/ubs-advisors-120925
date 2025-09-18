@@ -1,7 +1,7 @@
 {
   "templates": [
     {
-      "name": "'News Portal'",
+      "name": "News Portal Template",
       "cluster": 1,
       "pages": [
         {
